@@ -1,0 +1,82 @@
+# HUNT-001 — Windows Authentication Failure Detection
+
+**Project:** Advanced Threat Hunting & Detection Engineering  
+**Investigation ID:** HUNT-001  
+**Status:** Detection validated
+
+## 1. Objective
+
+Detect repeated Windows authentication failures using Windows Security Event Logs and Splunk Enterprise.
+
+## 2. Lab Environment
+
+- Endpoint: Windows 11
+- Hostname: VICKY
+- SIEM: Splunk Enterprise on Ubuntu Server
+- Log collector: Splunk Universal Forwarder
+- Index: main
+- Log source: WinEventLog:Security
+
+## 3. Simulation
+
+Generated three controlled failed authentication attempts and collected their corresponding Windows Security events.
+
+## 4. Evidence
+
+Windows Security Event ID: 4625
+
+Observed details:
+- Host: VICKY
+- Source IP: 127.0.0.1
+- Logon Type: 2
+- Status: 0xc000006d
+- Failed attempts: 3
+
+The source address 127.0.0.1 represents localhost. This was a local authentication simulation, not a remote brute-force attack.
+
+The targeted username was not successfully extracted in the displayed results.
+
+## 5. Detection Logic
+
+- Search Windows Security events.
+- Extract Event ID 4625.
+- Count failed authentication events.
+- Group events by host and source.
+- Generate a detection when the threshold reaches three failures within 30 minutes.
+
+## 6. Splunk Alert
+
+**Alert name:** HUNT-001 - Multiple Failed Windows Logons
+
+- Alert type: Scheduled
+- Execution frequency: Every 5 minutes
+- Search window: 30 minutes
+- Trigger condition: Number of results greater than zero
+- Severity: Medium
+- Throttling: 30 minutes
+- Trigger action: Add to Triggered Alerts
+
+## 7. Validation
+
+The scheduled alert recorded a trigger at 2026-11-10 14:50:01 UTC.
+
+The associated search results showed:
+- Host: VICKY
+- Source IP: 127.0.0.1
+- Failed attempts: 3
+- Detection name: Multiple Failed Windows Logons
+
+## 8. MITRE ATT&CK Mapping
+
+- T1110 — Brute Force
+- T1110.001 — Password Guessing (simulation alignment)
+
+## 9. Conclusion
+
+Windows Security telemetry was successfully collected and investigated in Splunk Enterprise.
+
+A scheduled detection was implemented and its trigger was validated using three controlled authentication failures.
+
+The current detection identifies repeated failures on a host. Further improvements should include reliable username extraction, source classification, and correlation with successful logons.
+
+**Final status: HUNT-001 detection validated.**
